@@ -10,6 +10,9 @@ const { mogoUrl } = require("./keys");
 app.use(bodyParser.urlencoded({ extended: true }));
 app.use(express.json({ extended: false }));
 
+//point towards the routes
+const boards = require("./routes/api/Boards");
+
 mongoose.connect(mogoUrl, {
   useNewUrlParser: true,
   useUnifiedTopology: true,
@@ -20,6 +23,9 @@ mongoose.connect(mogoUrl, {
 app.get("/", (req, res) => {
   res.send("Hello, Best Regards MAIN server is UP!");
 });
+
+//use routes
+app.use("/edc/boards", boards);
 
 mongoose.connection.on("connected", () => {
   console.log("connected to mongoDB!");
