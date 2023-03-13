@@ -12,6 +12,7 @@ app.use(express.json({ extended: false }));
 
 //point towards the routes
 const boards = require("./routes/api/Boards");
+const panels = require("./routes/api/Panels");
 
 mongoose.connect(mogoUrl, {
   useNewUrlParser: true,
@@ -26,6 +27,7 @@ app.get("/", (req, res) => {
 
 //use routes
 app.use("/edc/boards", boards);
+app.use("/edc/panels", panels);
 
 mongoose.connection.on("connected", () => {
   console.log("connected to mongoDB!");
@@ -37,5 +39,5 @@ mongoose.connection.on("error", (err) => {
 
 //TODO move port number to env vars
 app.listen(4000, () => {
-  console.log(`Work Web Server started 4000`);
+  console.log(`EDC Web Server started 4000`);
 });

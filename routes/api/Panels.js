@@ -4,85 +4,84 @@ const uuid = require("uuid");
 // const uuid4 = uuid.v4();
 
 // Load Board Validation
-const validateBoardInput = require("../validation/board");
-const validateEditBoardInput = require("../validation/editBoard");
+const validatePanelInput = require("../validation/panel");
 
 // Load Board model
 const mongoose = require("mongoose");
-require("../models/Board");
-const Board = mongoose.model("Board");
+require("../models/Panel");
+const Panel = mongoose.model("Panel");
 
-// @route   GET edc/boards/test
-// @desc    Tests Users Route
+// @route   GET edc/panels/test
+// @desc    Tests Panels Route
 // @access  Public
 router.get("/test", (req, res) =>
   res.json({
-    msg: "Boards Route Works",
-    routes: "edc/boards/allroutes     To see all available routes",
+    msg: "panels Route Works",
+    routes: "edc/panels/allroutes     To see all available routes",
   })
 );
 
-// @route   GET edc/boards/allRoutes
+// @route   GET edc/panels/allRoutes
 // @desc    displays all available Routes
 // @access  Public
 router.get("/allroutes", (req, res) =>
   res.json({
-    addBoard: "edc/boards/addBoard",
-    getAll: "edc/boards/all",
+    addPanel: "edc/panels/addBoard",
+    getAll: "edc/panels/all",
+    editPanel: "edc/panels/edit",
+    deletePanel: "edc/panels/delete",
   })
 );
 
-// @route   Post edc/boards/addBoard
+// @route   Post edc/panels/addBoard
 // @desc    Add new board to project
 // @access  Public
-router.post("/addBoard", (req, res) => {
+router.post("/addPanel", (req, res) => {
   // console.log(req.body);
-  const { errors, isValid } = validateBoardInput(req.body);
+  const { errors, isValid } = validatePanelInput(req.body);
   // Check Validation
   if (!isValid) {
     return res.status(400).json(errors);
   }
-  //Check if board label already exists
-  Board.findOne({ boardLabel: req.body.boardLabel }).then((board) => {
-    if (board) {
-      errors.boardLabel = "That Board Label already exists";
+  //Check if panel  exists
+  Panel.findOne({
+    boardID: req.body.boardID,
+    panelLabel: req.body.panelLabel,
+  }).then((panel) => {
+    if (panel) {
+      errors.panelLabel = "That Panel Label already exists";
       res.status(400).json(errors);
     } else {
-      //Check if board ID already
-      Board.findOne({ boardID: uuid.toString() }).then((board) => {
-        if (board) {
-          errors.boardID = "Board ID already exists";
-          return res.status(400).json(errors);
-        } else {
-          //Create Board
-          const newBoard = new Board({
-            boardLabel: req.body.boardLabel,
-            boardID: uuid.v4().toString(),
-            dateModified: Date.now(),
-          });
-          //Add Board to database
-          newBoard
-            .save()
-            .then((board) => res.json(board))
-            .catch((err) => console.log(err));
-        }
+      //Create Panel
+      const newPanel = new Panel({
+        panelLabel: req.body.panelLabel,
+        panelID: uuid.v4().toString(),
+        boardID: req.body.boardID,
+        dateModified: Date.now(),
       });
+      //Add Board to database
+      newPanel
+        .save()
+        .then((panel) => res.json(panel))
+        .catch((err) => console.log(err));
+      // }
+      // });
     }
   });
 });
 
-// @route   GET edc/boards/all
-// @desc    Get all boards
+// @route   GET edc/panels/all
+// @desc    Get all panels
 // @access  Public
 router.get("/all", (req, res) => {
   const errors = {};
-  Board.find()
+  Panel.find()
     .sort({ date: -1 })
-    .then((boards) => res.json(boards))
-    .catch((err) => res.status(404).json({ noboardsfound: "No boards found" }));
+    .then((panels) => res.json(panels))
+    .catch((err) => res.status(404).json({ nopanelsfound: "No panels found" }));
 });
 
-// @route   POST edc/boards/editBoard
+// @route   POST edc/panels/editBoard
 // @desc    Edit board label
 // @access  Private
 router.post("/editBoard", (req, res) => {
@@ -123,7 +122,7 @@ router.post("/editBoard", (req, res) => {
     );
 });
 
-// @route   DELETE edc/boards/deleteBoard
+// @route   DELETE edc/panels/deleteBoard
 // @desc    Delete Board
 // @access  Private
 router.delete("/deleteBoard", (req, res) => {
