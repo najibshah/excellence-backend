@@ -1,6 +1,8 @@
+require("dotenv").config();
+
+mongoURI = process.env.MONGODB_URI;
 module.exports = {
-  mogoUrl:
-    "mongodb+srv://admin:rOApd9aoCJH42edF@testingcluster.7iqoshg.mongodb.net/Boards?retryWrites=true&w=majority",
+  mogoUrl: `${mongoURI}`,
 };
 
 //To-Do Setup env vars

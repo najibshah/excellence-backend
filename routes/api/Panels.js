@@ -33,7 +33,7 @@ router.get("/allroutes", (req, res) =>
   })
 );
 
-// @route   Post edc/panels/addBoard
+// @route   Post edc/panels/addPanel
 // @desc    Add new board to project
 // @access  Public
 router.post("/addPanel", (req, res) => {
@@ -81,55 +81,55 @@ router.get("/all", (req, res) => {
     .catch((err) => res.status(404).json({ nopanelsfound: "No panels found" }));
 });
 
-// @route   POST edc/panels/editBoard
-// @desc    Edit board label
-// @access  Private
-router.post("/editBoard", (req, res) => {
-  const { errors, isValid } = validateEditBoardInput(req.body);
-  // Check Validation
-  if (!isValid) {
-    // Return any errors with 400 status
-    return res.status(400).json(errors);
-  }
-  //Get Fields
-  const boardFields = {};
-  boardFields.boardID = req.body.boardID;
-  if (req.body.boardLabel) boardFields.boardLabel = req.body.boardLabel;
-  Board.findOne({ boardID: req.body.boardID })
-    .then((board) => {
-      if (board.boardLabel === req.body.boardLabel) {
-        errors.boardLabel = "That Board Label already exists";
-        res.status(400).json(errors);
-      } else {
-        if (board) {
-          console.log(board);
-          //Update
-          Board.findOneAndUpdate(
-            { boardID: req.body.boardID },
-            { $set: boardFields },
-            { new: true }
-          ).then((board) => res.json(board));
-        } else {
-          errors.boardID = "No board for this ID";
-          res.status(400).json(errors);
-        }
-      }
-    })
-    .catch((err) =>
-      res.status(404).json({
-        boardID: "No board for this ID",
-      })
-    );
-});
+// // @route   POST edc/panels/editBoard
+// // @desc    Edit board label
+// // @access  Private
+// router.post("/editBoard", (req, res) => {
+//   const { errors, isValid } = validateEditBoardInput(req.body);
+//   // Check Validation
+//   if (!isValid) {
+//     // Return any errors with 400 status
+//     return res.status(400).json(errors);
+//   }
+//   //Get Fields
+//   const boardFields = {};
+//   boardFields.boardID = req.body.boardID;
+//   if (req.body.boardLabel) boardFields.boardLabel = req.body.boardLabel;
+//   Board.findOne({ boardID: req.body.boardID })
+//     .then((board) => {
+//       if (board.boardLabel === req.body.boardLabel) {
+//         errors.boardLabel = "That Board Label already exists";
+//         res.status(400).json(errors);
+//       } else {
+//         if (board) {
+//           console.log(board);
+//           //Update
+//           Board.findOneAndUpdate(
+//             { boardID: req.body.boardID },
+//             { $set: boardFields },
+//             { new: true }
+//           ).then((board) => res.json(board));
+//         } else {
+//           errors.boardID = "No board for this ID";
+//           res.status(400).json(errors);
+//         }
+//       }
+//     })
+//     .catch((err) =>
+//       res.status(404).json({
+//         boardID: "No board for this ID",
+//       })
+//     );
+// });
 
-// @route   DELETE edc/panels/deleteBoard
-// @desc    Delete Board
-// @access  Private
-router.delete("/deleteBoard", (req, res) => {
-  Board.findOneAndRemove({ boardID: req.body.boardID }).then(() =>
-    res.json({ success: true })
-  );
-});
+// // @route   DELETE edc/panels/deleteBoard
+// // @desc    Delete Board
+// // @access  Private
+// router.delete("/deleteBoard", (req, res) => {
+//   Board.findOneAndRemove({ boardID: req.body.boardID }).then(() =>
+//     res.json({ success: true })
+//   );
+// });
 
 //TODO delete panels related to board
 
