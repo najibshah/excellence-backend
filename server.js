@@ -12,7 +12,6 @@ app.use(express.json({ extended: false }));
 
 //point towards the routes
 const boards = require("./routes/api/Boards");
-const panels = require("./routes/api/Panels");
 
 mongoose.connect(mogoUrl, {
   useNewUrlParser: true,
@@ -27,7 +26,6 @@ app.get("/", (req, res) => {
 
 //use routes
 app.use("/edc/boards", boards);
-app.use("/edc/panels", panels);
 
 mongoose.connection.on("connected", () => {
   console.log("connected to mongoDB!");
