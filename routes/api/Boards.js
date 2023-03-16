@@ -288,14 +288,7 @@ router.post("/deletePanel", (req, res) => {
       const omittedObj = _.omit(obj, [`${req.body.panelID}`]);
       boardFields.panels = {
         ...omittedObj,
-        // [req.body.panelID]: {
-        //   name: req.body.name,
-        //   dateAdded: board.panels[req.body.panelID].dateAdded,
-        //   dateModified: Date.now(),
-        //   items: board.panels[req.body.panelID].items,
-        // },
       };
-      // console.log(boardFields);
 
       if (board) {
         //Update
