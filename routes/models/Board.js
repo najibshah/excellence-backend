@@ -9,6 +9,10 @@ mongoose.model("Board", {
     type: String,
     required: true,
   },
+  panels: {
+    type: Object,
+    required: true,
+  },
   dateAdded: {
     type: Date,
     default: Date.now,
