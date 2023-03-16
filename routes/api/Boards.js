@@ -1,11 +1,12 @@
 const express = require("express");
 const router = express.Router();
 const uuid = require("uuid");
-// const uuid4 = uuid.v4();
+// const uuid4 = uuid.v1();
 
 // Load Board Validation
 const validateBoardInput = require("../validation/board");
 const validateEditBoardInput = require("../validation/editBoard");
+const validateNewPanelInput = require("../validation/newPanel");
 
 // Load Board model
 const mongoose = require("mongoose");
@@ -49,6 +50,8 @@ router.post("/addBoard", (req, res) => {
       res.status(400).json(errors);
     } else {
       //Check if board ID already
+      const boardIDuuid = uuid.v1().toString();
+      const panelIDuuid = uuid.v1().toString();
       Board.findOne({ boardID: uuid.toString() }).then((board) => {
         if (board) {
           errors.boardID = "Board ID already exists";
@@ -57,8 +60,47 @@ router.post("/addBoard", (req, res) => {
           //Create Board
           const newBoard = new Board({
             boardLabel: req.body.boardLabel,
-            boardID: uuid.v4().toString(),
+            boardID: boardIDuuid,
             dateModified: Date.now(),
+            panels: {
+              [panelIDuuid]: {
+                name: "Requested",
+                dateAdded: Date.now(),
+                dateModified: Date.now(),
+                items: [
+                  {
+                    id: uuid.v1(),
+                    content: "First task",
+                    dateAdded: Date.now(),
+                    dateModified: Date.now(),
+                  },
+                  {
+                    id: uuid.v1(),
+                    content: "Second task",
+                    dateAdded: Date.now(),
+                    dateModified: Date.now(),
+                  },
+                  {
+                    id: uuid.v1(),
+                    content: "Third task",
+                    dateAdded: Date.now(),
+                    dateModified: Date.now(),
+                  },
+                  {
+                    id: uuid.v1(),
+                    content: "Fourth task",
+                    dateAdded: Date.now(),
+                    dateModified: Date.now(),
+                  },
+                  {
+                    id: uuid.v1(),
+                    content: "Fifth task",
+                    dateAdded: Date.now(),
+                    dateModified: Date.now(),
+                  },
+                ],
+              },
+            },
           });
           //Add Board to database
           newBoard
@@ -123,15 +165,62 @@ router.post("/editBoard", (req, res) => {
     );
 });
 
-// @route   DELETE edc/boards/deleteBoard
+// @route   POST edc/boards/deleteBoard
 // @desc    Delete Board
 // @access  Private
-router.delete("/deleteBoard", (req, res) => {
+router.post("/deleteBoard", (req, res) => {
   Board.findOneAndRemove({ boardID: req.body.boardID }).then(() =>
     res.json({ success: true })
   );
 });
 
-//TODO delete panels related to board
+//PANEL APIS
+
+// @route   POST edc/boards/addPanel
+// @desc    Edit board label
+// @access  Private
+router.post("/addPanel", (req, res) => {
+  const { errors, isValid } = validateNewPanelInput(req.body);
+  // Check Validation
+  if (!isValid) {
+    // Return any errors with 400 status
+    return res.status(400).json(errors);
+  }
+  //Get Fields
+  const panelIDuuid = uuid.v1().toString();
+
+  const boardFields = {};
+  boardFields.boardID = req.body.boardID;
+  if (req.body.boardLabel) boardFields.boardLabel = req.body.boardLabel;
+  Board.findOne({ boardID: req.body.boardID })
+    .then((board) => {
+      boardFields.panels = {
+        ...board.panels,
+        [panelIDuuid]: {
+          name: req.body.name,
+          dateAdded: Date.now(),
+          dateModified: Date.now(),
+          items: [],
+        },
+      };
+      console.log(boardFields.panels);
+      if (board) {
+        //Update
+        Board.findOneAndUpdate(
+          { boardID: req.body.boardID },
+          { $set: boardFields },
+          { new: true }
+        ).then((board) => res.json(board));
+      } else {
+        errors.boardID = "No board for this ID";
+        res.status(400).json(errors);
+      }
+    })
+    .catch((err) =>
+      res.status(404).json({
+        boardID: "No board for this ID",
+      })
+    );
+});
 
 module.exports = router;
