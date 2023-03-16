@@ -3,10 +3,11 @@ const router = express.Router();
 const uuid = require("uuid");
 // const uuid4 = uuid.v1();
 
-// Load Board Validation
+// Load Validations
 const validateBoardInput = require("../validation/board");
 const validateEditBoardInput = require("../validation/editBoard");
 const validateNewPanelInput = require("../validation/newPanel");
+const validateNewItemInput = require("../validation/newItem");
 
 // Load Board model
 const mongoose = require("mongoose");
@@ -177,7 +178,7 @@ router.post("/deleteBoard", (req, res) => {
 //PANEL APIS
 
 // @route   POST edc/boards/addPanel
-// @desc    Edit board label
+// @desc    Add new panel to board
 // @access  Private
 router.post("/addPanel", (req, res) => {
   const { errors, isValid } = validateNewPanelInput(req.body);
@@ -215,6 +216,56 @@ router.post("/addPanel", (req, res) => {
         errors.boardID = "No board for this ID";
         res.status(400).json(errors);
       }
+    })
+    .catch((err) =>
+      res.status(404).json({
+        boardID: "No board for this ID",
+      })
+    );
+});
+
+// @route   POST edc/boards/addItem
+// @desc    Add new item to panel
+// @access  Private
+router.post("/addItem", (req, res) => {
+  const { errors, isValid } = validateNewItemInput(req.body);
+
+  // Check Validation
+  if (!isValid) {
+    // Return any errors with 400 status
+    return res.status(400).json(errors);
+  }
+  //Get Fields
+  const updatedPanel = {};
+  boardFields.boardID = req.body.boardID;
+  Board.findOne({ boardID: req.body.boardID })
+    .then((board) => {
+      Object.entries(board.panels).map((panel, index) => {
+        if (panel[0] === req.body.panelID) {
+          // console.log(panel[1].items);
+        }
+      });
+      // boardFields.panels = {
+      //   ...board.panels,
+      //   [panelIDuuid]: {
+      //     name: req.body.name,
+      //     dateAdded: Date.now(),
+      //     dateModified: Date.now(),
+      //     items: [],
+      //   },
+      // };
+      // console.log(boardFields.panels);
+      // if (board) {
+      //   //Update
+      //   Board.findOneAndUpdate(
+      //     { boardID: req.body.boardID },
+      //     { $set: boardFields },
+      //     { new: true }
+      //   ).then((board) => res.json(board));
+      // } else {
+      //   errors.boardID = "No board for this ID";
+      //   res.status(400).json(errors);
+      // }
     })
     .catch((err) =>
       res.status(404).json({
