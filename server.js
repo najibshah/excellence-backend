@@ -7,6 +7,8 @@ const app = express();
 app.use(cors());
 const { mogoUrl } = require("./keys");
 
+const PORT = process.env.PORT || 4000;
+
 app.use(bodyParser.urlencoded({ extended: true }));
 app.use(express.json({ extended: false }));
 
@@ -38,6 +40,6 @@ mongoose.connection.on("error", (err) => {
 });
 
 //TODO move port number to env vars
-app.listen(4000, () => {
-  console.log(`EDC Web Server started 4000`);
+app.listen(PORT, () => {
+  console.log(`EDC Web Server started ${PORT}`);
 });
