@@ -3,6 +3,8 @@ const router = express.Router();
 const uuid = require("uuid");
 // const uuid4 = uuid.v1();
 
+const _ = require("lodash");
+
 // Load Validations
 const validateBoardInput = require("../validation/board");
 const validateEditBoardInput = require("../validation/editBoard");
@@ -224,6 +226,91 @@ router.post("/addPanel", (req, res) => {
     );
 });
 
+// @route   POST edc/boards/editPanel
+// @desc    edit Panel Name
+// @access  Private
+router.post("/editPanel", (req, res) => {
+  const { errors, isValid } = validateNewPanelInput(req.body);
+  // Check Validation
+  if (!isValid) {
+    // Return any errors with 400 status
+    return res.status(400).json(errors);
+  }
+  //Get Fields
+
+  const boardFields = {};
+  boardFields.boardID = req.body.boardID;
+  if (req.body.boardLabel) boardFields.boardLabel = req.body.boardLabel;
+  Board.findOne({ boardID: req.body.boardID })
+    .then((board) => {
+      const obj = { ...board.panels };
+      const omittedObj = _.omit(obj, [`${req.body.panelID}`]);
+      boardFields.panels = {
+        ...omittedObj,
+        [req.body.panelID]: {
+          name: req.body.name,
+          dateAdded: board.panels[req.body.panelID].dateAdded,
+          dateModified: Date.now(),
+          items: board.panels[req.body.panelID].items,
+        },
+      };
+      console.log(boardFields);
+
+      if (board) {
+        //Update
+        Board.findOneAndUpdate(
+          { boardID: req.body.boardID },
+          { $set: boardFields },
+          { new: true }
+        ).then((board) => res.json(board));
+      } else {
+        errors.boardID = "No board for this ID";
+        res.status(400).json(errors);
+      }
+    })
+    .catch((err) =>
+      res.status(404).json({
+        boardID: "No board for this ID",
+      })
+    );
+});
+
+// @route   POST edc/boards/deletePanel
+// @desc    delete
+// @access  Private
+router.post("/deletePanel", (req, res) => {
+  const boardFields = {};
+  boardFields.boardID = req.body.boardID;
+  if (req.body.boardLabel) boardFields.boardLabel = req.body.boardLabel;
+  Board.findOne({ boardID: req.body.boardID })
+    .then((board) => {
+      const obj = { ...board.panels };
+      const omittedObj = _.omit(obj, [`${req.body.panelID}`]);
+      boardFields.panels = {
+        ...omittedObj,
+      };
+
+      if (board) {
+        //Update
+        Board.findOneAndUpdate(
+          { boardID: req.body.boardID },
+          { $set: boardFields },
+          { new: true }
+        ).then((board) => res.json(board));
+      } else {
+        errors.boardID = "No board for this ID";
+        res.status(400).json(errors);
+      }
+    })
+    .catch((err) =>
+      res.status(404).json({
+        boardID: "No board for this ID",
+      })
+    );
+});
+
+//ITEM APIS
+
 // @route   POST edc/boards/addItem
 // @desc    Add new item to panel
 // @access  Private
@@ -235,37 +322,42 @@ router.post("/addItem", (req, res) => {
     // Return any errors with 400 status
     return res.status(400).json(errors);
   }
+  const panelIDD = req.body.panelID;
+
   //Get Fields
-  const updatedPanel = {};
+  const boardFields = {};
   boardFields.boardID = req.body.boardID;
   Board.findOne({ boardID: req.body.boardID })
     .then((board) => {
-      Object.entries(board.panels).map((panel, index) => {
-        if (panel[0] === req.body.panelID) {
-          // console.log(panel[1].items);
-        }
-      });
-      // boardFields.panels = {
-      //   ...board.panels,
-      //   [panelIDuuid]: {
-      //     name: req.body.name,
-      //     dateAdded: Date.now(),
-      //     dateModified: Date.now(),
-      //     items: [],
-      //   },
-      // };
-      // console.log(boardFields.panels);
-      // if (board) {
-      //   //Update
-      //   Board.findOneAndUpdate(
-      //     { boardID: req.body.boardID },
-      //     { $set: boardFields },
-      //     { new: true }
-      //   ).then((board) => res.json(board));
-      // } else {
-      //   errors.boardID = "No board for this ID";
-      //   res.status(400).json(errors);
-      // }
+      const newItems = [
+        ...board.panels[req.body.panelID].items,
+        {
+          id: uuid.v1(),
+          content: req.body.content,
+          dateAdded: Date.now(),
+          dateModified: Date.now(),
+        },
+      ];
+      boardFields.panels = {
+        ...board.panels,
+        [req.body.panelID]: {
+          name: board.panels[req.body.panelID].name,
+          dateAdded: board.panels[req.body.panelID].dateAdded,
+          dateModified: Date.now(),
+          items: newItems,
+        },
+      };
+      if (board) {
+        //Update
+        Board.findOneAndUpdate(
+          { boardID: req.body.boardID },
+          { $set: boardFields },
+          { new: true }
+        ).then((board) => res.json(board));
+      } else {
+        errors.boardID = "No board for this ID";
+        res.status(400).json(errors);
+      }
     })
     .catch((err) =>
       res.status(404).json({
